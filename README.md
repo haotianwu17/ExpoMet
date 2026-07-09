@@ -27,7 +27,22 @@ exposures to run multiple regression models on, on the right side of the
 equation:
 
 ``` r
-# insert example exwas function here
+data(exposome_example)
+  data(pheno_example)
+  pheno_test <- pheno_example
+  pheno_test$Disease_binary <- ifelse(pheno_test$Disease == "Yes", 1, 0)
+
+  fit <- exwas(
+    Disease_binary ~ omic_features + age + sex,
+    pheno = pheno_test,
+    omic_features = exposome_example,
+    id_col = "exp_id",
+    family = "binomial"
+  )
+
+  head(fit$results)
+  
+# Edit above or add other functions here.
 ```
 
 ## Output

@@ -12,6 +12,15 @@ models for exposome-wide and metabolite-wide association studies.
 library(exposome)
 ```
 
+### Alternatively install from tar.gz:
+```r
+install.packages(
+  "build/ExpoNet_0.0.0.9000.tar.gz",
+  repos = NULL,
+  type = "source"
+)
+```
+
 As a simple example, we use linear regression with a binary outcome
 (case versus control) on the left side of the equation and define 5
 exposures to run multiple regression models on, on the right side of the

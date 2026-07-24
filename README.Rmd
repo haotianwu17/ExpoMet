@@ -10,11 +10,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Package Exposome Version 0.90
+# Package ExpoMet Version 0.90
 
 ## Overview
 
-*Exposome* package provides an interface to fit univarate regression models for exposome-wide and metabolite-wide association studies. It lets you easily identify and remove features below a prespecified detection rate and performs univariate regression across all the specified columns. After performing univariate regression, 
+*ExpoMet* package provides an interface to fit univarate regression models for exposome-wide and metabolite-wide association studies. It lets you easily identify and remove features below a prespecified detection rate and performs univariate regression across all the specified columns. After performing univariate regression, 
 
 The formula interface is very similar to glm, allowing you to easily define the linear regression models of interest.
 
@@ -28,16 +28,33 @@ The key functions in the package are:
 
 
 
-# How to use exposome
+# How to use ExpoMet
 
 ```{r}
-library(exposome)
+# remotes::install_github("haotianwu17/ExpoMet")
+library(ExpoMet)
 ```
 
 As a simple example, we use linear regression with a binary outcome (case versus control) on the left side of the equation and define 5 exposures to run multiple regression models on, on the right side of the equation:
 
 ```{r}
-# insert example exwas function here
+data(exposome_example)
+  data(pheno_example)
+  pheno_test <- pheno_example
+  pheno_test$Disease_binary <- ifelse(pheno_test$Disease == "Yes", 1, 0)
+
+  fit <- exwas(
+    Disease_binary ~ omic_features + age + sex,
+    pheno = pheno_test,
+    omic_features = exposome_example,
+    id_col = "exp_id",
+    family = "binomial"
+  )
+
+  head(fit$results)
+  
+# Edit above or add other functions here.
+  
 ```
 
 
@@ -54,6 +71,5 @@ As a simple example, we use linear regression with a binary outcome (case versus
 
 
 # Additional Resources
-
 
 

@@ -1,4 +1,9 @@
 .Rproj.user
+housekeeping.R
+data-raw
+*.Rproj
 .Rhistory
 .RData
-.Ruserdata
+.httr-oauth
+.DS_Store
+.quarto

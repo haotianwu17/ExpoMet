@@ -1,10 +1,25 @@
-Package: ExposomeR
-Title: What the Package Does (One Line, Title Case)
+Package: ExpoMet
+Title: ExpoMet
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Authors@R: c(
+    person("Gabriela L.", "Jackson", role = "aut"),
+    person("Haotian", "Wu", email = "hw2694@cumc.columbia.edu", role = c("aut", "cre")),
+    person("Maya R.", "Arnott", role = "aut"),
+    person("Wending", "Li", role = "aut"),
+    person("Yue", "Zhao", role = "aut"),
+    person("Zhengfei", "Bian", role = "aut")
+    )
+Description: ExpoMet is a lightweight R package that provides a standardized, end-to-end analytical workflow for exposomics and metabolomics studies. It integrates quality control, preprocessing, feature filtering, data transformation, association analyses, visualization, and reproducible reporting into a single, cohesive analytical pipeline. Built with minimal software dependencies and intuitive data frame-based workflows, ExpoMet is designed to be accessible to both trainees and experienced investigators while remaining flexible enough for small experimental studies and large-scale epidemiologic research.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
+Suggests: 
+    lme4,
+    survival,
+    testthat (>= 3.0.0)
+Depends: 
+    R (>= 3.5)
+LazyData: true
+LazyDataCompression: xz
+Config/testthat/edition: 3

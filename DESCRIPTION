@@ -1,6 +1,6 @@
 Package: ExpoMet
 Title: ExpoMet
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(
     person("Gabriela L.", "Jackson", role = "aut"),
     person("Haotian", "Wu", email = "hw2694@cumc.columbia.edu", role = c("aut", "cre")),

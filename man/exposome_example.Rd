@@ -3,19 +3,18 @@
 \docType{data}
 \name{exposome_example}
 \alias{exposome_example}
-\title{Example exposome dataset for ExpoMet}
+\title{Example exposome dataset for ExpoNet}
 \format{
-A data frame with rows as participants and columns including:
-\describe{
-\item{exp_id}{The ID for the participants.}
-\item{C0001}{The values for exposomic feature 'C0001'.}
-}
+A data frame with 395 rows and 5,254 columns. The first column,
+\code{exp_id}, contains participant identifiers. The remaining 5,253 columns
+(\code{C0001} through \code{C5252}, plus \code{C9999}) contain simulated exposomic
+feature measurements.
 }
 \usage{
 exposome_example
 }
 \description{
 A de-identified example dataset used to demonstrate
-the main ExpoMet workflow.
+the main ExpoNet workflow.
 }
 \keyword{datasets}

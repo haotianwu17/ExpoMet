@@ -4,7 +4,7 @@ test_that("exwas returns expected structure", {
   pheno_test <- pheno_example
   pheno_test$Disease_binary <- ifelse(pheno_test$Disease == "Yes", 1, 0)
 
-  fit <- exwas(
+  fit <- run_regression(
     Disease_binary ~ omic_features + age + sex,
     pheno = pheno_test,
     omic_features = exposome_example,

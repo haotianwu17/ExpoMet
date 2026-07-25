@@ -3,7 +3,7 @@
 \docType{data}
 \name{pheno_example}
 \alias{pheno_example}
-\title{Example phenotype dataset for ExpoMet}
+\title{Example phenotype dataset for ExpoNet}
 \format{
 A data frame with rows as participants and columns including:
 \describe{
@@ -19,6 +19,6 @@ pheno_example
 }
 \description{
 A simulated phenotype dataset used to demonstrate
-the main ExpoMet workflow.
+the main ExpoNet workflow.
 }
 \keyword{datasets}

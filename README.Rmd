@@ -2,74 +2,251 @@
 output: github_document
 ---
 
+# ExpoMet
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+<!-- README.md is generated from README.Rmd. Please edit README.Rmd, not README.md. -->
+
+`ExpoMet` is an R package designed to make common exposomic and high-dimensional omic analyses accessible to epidemiologists.
+
+The package provides tools for:
+
+- exploratory analysis and visualization of exposomic data;
+- handling values below the limit of detection;
+- transforming high-dimensional features;
+- exposure-wide association analyses;
+- Cox proportional hazards regression;
+- mixed-effects regression;
+- preparation of results for downstream pathway analysis.
+
+## Installation
+
+`ExpoMet` is currently distributed through GitHub and is not available on CRAN.
+
+### Install directly from GitHub
+
+```{r install-github, eval=FALSE}
+install.packages("remotes")
+
+remotes::install_github("haotianwu17/ExpoMet")
 ```
 
-# Package ExpoMet Version 0.90
+Then load the package:
 
-## Overview
-
-*ExpoMet* package provides an interface to fit univarate regression models for exposome-wide and metabolite-wide association studies. It lets you easily identify and remove features below a prespecified detection rate and performs univariate regression across all the specified columns. After performing univariate regression, 
-
-The formula interface is very similar to glm, allowing you to easily define the linear regression models of interest.
-
-The key functions in the package are: 
-
-*{summarize}* - 
-
-*{drop_low_detection}* -
-
-*{exwas}* - 
-
-
-
-# How to use ExpoMet
-
-```{r}
-# remotes::install_github("haotianwu17/ExpoMet")
+```{r load-package, eval=FALSE}
 library(ExpoMet)
 ```
 
-As a simple example, we use linear regression with a binary outcome (case versus control) on the left side of the equation and define 5 exposures to run multiple regression models on, on the right side of the equation:
+### Install from a downloaded source package
 
-```{r}
-data(exposome_example)
-  data(pheno_example)
-  pheno_test <- pheno_example
-  pheno_test$Disease_binary <- ifelse(pheno_test$Disease == "Yes", 1, 0)
+A `.tar.gz` source package can also be downloaded from the GitHub Releases page and installed locally.
 
-  fit <- exwas(
-    Disease_binary ~ omic_features + age + sex,
-    pheno = pheno_test,
-    omic_features = exposome_example,
-    id_col = "exp_id",
-    family = "binomial"
-  )
-
-  head(fit$results)
-  
-# Edit above or add other functions here.
-  
+```{r install-source, eval=FALSE}
+install.packages(
+  "ExpoMet_0.1.0.tar.gz",
+  repos = NULL,
+  type = "source"
+)
 ```
 
+For example, on Windows:
 
-# Output
+```{r install-source-windows, eval=FALSE}
+install.packages(
+  "C:/Users/YourName/Downloads/ExpoMet_0.1.0.tar.gz",
+  repos = NULL,
+  type = "source"
+)
+```
 
+Replace the version number and file path as appropriate.
 
+## Main functions
 
-# Plot
+The current ExpoMet workflow includes the following functions:
 
+| Function | Purpose |
+|---|---|
+| `preview()` | Preview and summarize exposomic data before analysis |
+| `detection()` | Evaluate detection patterns of exposomic features |
+| `replace_below_lod()` | Replace measurements below the limit of detection |
+| `transform_features()` | Apply transformations to exposomic features |
+| `exp_eda()` | Perform exploratory data analysis of exposomic features |
+| `run_regression()` | Run exposure-wide regression analyses |
+| `run_cox()` | Run exposure-wide Cox proportional hazards models |
+| `run_mixed()` | Run exposure-wide mixed-effects models |
+| `format_mummichog_input()` | Format association results for downstream mummichog analysis |
 
+Detailed documentation for each function is available in R using:
 
-# Citing of exposome
+```{r help-functions, eval=FALSE}
+?preview
+?detection
+?replace_below_lod
+?transform_features
+?exp_eda
+?run_regression
+?run_cox
+?run_mixed
+?format_mummichog_input
+```
 
+## Example data
 
+ExpoMet includes example datasets that can be used to learn the workflow.
 
-# Additional Resources
+```{r example-data, eval=FALSE}
+library(ExpoMet)
 
+data(exposome_example)
+data(pheno_example)
 
+dim(exposome_example)
+head(pheno_example)
+```
+
+`exposome_example` contains participant IDs and simulated exposomic features.
+
+`pheno_example` contains participant-level phenotype and covariate information that can be linked to the exposomic data using `exp_id`.
+
+## Quick example: exposure-wide association analysis
+
+For a binary outcome, first ensure that the outcome is coded appropriately for binomial regression.
+
+```{r regression-example, eval=FALSE}
+library(ExpoMet)
+
+data(exposome_example)
+data(pheno_example)
+
+pheno_example$Disease_binary <- ifelse(
+  pheno_example$Disease == "Yes",
+  1,
+  0
+)
+
+fit <- run_regression(
+  Disease_binary ~ omic_features + age + sex,
+  pheno = pheno_example,
+  omic_features = exposome_example,
+  id_col = "exp_id",
+  family = "binomial"
+)
+
+head(fit$results)
+```
+
+In the model formula, `omic_features` acts as a placeholder. ExpoMet fits the specified model separately for each exposomic feature while retaining the other variables in the formula as covariates.
+
+Results can be accessed using:
+
+```{r regression-results, eval=FALSE}
+fit$results
+```
+
+## Typical ExpoMet workflow
+
+A general analysis may proceed as follows:
+
+```{r workflow, eval=FALSE}
+library(ExpoMet)
+
+# 1. Load exposomic and phenotype data
+data(exposome_example)
+data(pheno_example)
+
+# 2. Inspect the exposomic dataset
+preview(exposome_example)
+
+# 3. Evaluate detection
+# See ?detection for available arguments
+
+# 4. Handle measurements below the limit of detection
+# See ?replace_below_lod
+
+# 5. Transform features if needed
+# See ?transform_features
+
+# 6. Explore distributions and data structure
+# See ?exp_eda
+
+# 7. Run association models
+# See ?run_regression, ?run_cox, and ?run_mixed
+
+# 8. Prepare results for pathway analysis if needed
+# See ?format_mummichog_input
+```
+
+The exact preprocessing steps required will depend on the study design, exposure platform, and scientific question.
+
+## Regression models
+
+### Generalized linear models
+
+Use `run_regression()` for exposure-wide generalized linear regression, including continuous, binary, and count outcomes as supported by the function.
+
+```{r glm-example, eval=FALSE}
+fit <- run_regression(
+  Disease_binary ~ omic_features + age + sex,
+  pheno = pheno_example,
+  omic_features = exposome_example,
+  id_col = "exp_id",
+  family = "binomial"
+)
+```
+
+### Cox proportional hazards models
+
+Use:
+
+```{r cox-help, eval=FALSE}
+?run_cox
+```
+
+for time-to-event analyses.
+
+The `survival` package is an optional dependency and is required when using Cox regression functionality.
+
+If needed:
+
+```{r install-survival, eval=FALSE}
+install.packages("survival")
+```
+
+### Mixed-effects models
+
+Use:
+
+```{r mixed-help, eval=FALSE}
+?run_mixed
+```
+
+for analyses requiring mixed-effects models.
+
+The `lme4` package is an optional dependency and is required for the corresponding mixed-model functionality.
+
+If needed:
+
+```{r install-lme4, eval=FALSE}
+install.packages("lme4")
+```
+
+## Reproducibility
+
+For reproducible analyses, we recommend recording the versions of R and ExpoMet used in an analysis:
+
+```{r session-info, eval=FALSE}
+packageVersion("ExpoMet")
+sessionInfo()
+```
+
+## Development
+
+ExpoMet is under active development.
+
+Issues, bug reports, and suggestions can be submitted through the GitHub repository:
+
+<https://github.com/haotianwu17/ExpoMet>
+
+## Authors
+
+ExpoMet is developed collaboratively by the ExpoMet team.

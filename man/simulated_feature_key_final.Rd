@@ -3,17 +3,16 @@
 \docType{data}
 \name{simulated_feature_key_final}
 \alias{simulated_feature_key_final}
-\title{Example dataset of the feature info for ExpoMet, associated with the "exposome_example" file}
+\title{Simulated feature annotation key}
 \format{
-A data frame with rows as exposomic features, and columns are the associated info:
-\describe{
-\item{feature_name}{Correspond to the column names in "exposome_example"}
-}
+A data frame containing simulated exposomic feature identifiers
+and associated feature annotation information.
 }
 \usage{
 simulated_feature_key_final
 }
 \description{
-Example dataset of the feature info for ExpoMet, associated with the "exposome_example" file
+A simulated annotation table corresponding to features in the
+\code{exposome_example} dataset.
 }
 \keyword{datasets}

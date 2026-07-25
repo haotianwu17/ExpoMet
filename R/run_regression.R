@@ -25,9 +25,9 @@
 #' first in the formula (e.g. \code{outcome ~ omic_features * covariate}). Only the
 #' interaction term coefficient is returned in the results, not the main effect.
 #' @param pheno A data frame containing the outcome/predictor variable and
-#' covariates. Must contain the ID column specified in \code{id}.
+#' covariates. Must contain the ID column specified in \code{id_col}.
 #' @param omic_features A data frame containing the exposure variables. Must
-#' contain the ID column specified in \code{id}. Each column (excluding
+#' contain the ID column specified in \code{id_col}. Each column (excluding
 #' the ID column) is treated as a separate exposure variable.
 #' @param id_col A character string specifying the name of the ID column present
 #' in both \code{pheno} and \code{omic_features} used to match participants
@@ -40,8 +40,8 @@
 #' @param fdr.thres A numeric value specifying the Benjamini-Hochberg False
 #' Discovery Rate (FDR) significance threshold.
 #' Defaults to 0.05.
-#' @param weights An optional character string specifying the column name to be
-#' used as regression weights. Defaults to NULL (no weights).
+#' @param weights An optional vector or character string specifying the
+#' regression weights. Defaults to NULL (no weights).
 #' @param output_file An optional character string specifying a file path to
 #' save the results table as a CSV file. Defaults to NULL (no file saved).
 #'
@@ -72,7 +72,7 @@
 #' \dontrun{
 #' # Displayed is an example of the function defined with an interaction term
 #'
-#' output2 <- exwas(
+#' output2 <- run_regression(
 #'   outcome_case ~ omic_features * ndi + age,
 #'   pheno_df,
 #'   omic_features,
@@ -85,7 +85,7 @@
 #'
 #'
 #'
-exwas <- function(formula,
+run_regression <- function(formula,
                     pheno,
                     omic_features,
                     id_col,
@@ -102,6 +102,7 @@ exwas <- function(formula,
   # - check fdr.thres is between 0 and 1
   # - check that at least one exposure column exists in omic_features
   # - check for participants lost during merge step
+  # - validate weights (if supplied)
   if (!inherits(formula, "formula")) {
     stop("'formula' must be a formula object")
   }
@@ -136,7 +137,27 @@ exwas <- function(formula,
   }
 
   # weights vector
-  w <- if (!is.null(weights)) data[[weights]] else NULL
+  # validate and resolve weights
+  if (!is.null(weights)) {
+    if (is.character(weights) && length(weights) == 1) {
+      if (!weights %in% colnames(data)) {
+        stop("Weights column '", weights, "' not found in 'pheno'. ")
+      }
+      w <- data[[weights]]
+    } else if (is.numeric(weights)) {
+      if (length(weights) != nrow(data)) {
+        stop("Weights vector length (", length(weights), ") must match ",
+             "the number of matched participants (", nrow(data), ")")
+      }
+      w <- weights
+    } else {
+      stop("'weights' must be either a column name (character string) ",
+           "present in 'pheno', or a numeric vector of the same length ",
+           "as the number of matched participants")
+    }
+  } else {
+    w <- NULL
+  }
 
   # check for participants lost during merge
   if (nrow(data) == 0) {
@@ -284,10 +305,10 @@ exwas <- function(formula,
     pch  = 16,
     xlab = "Effect Estimate (Regression Coefficient)",
     ylab = expression(-log[10]*group("(", nominal~p-value, ")")),
-    main = "ExWAS Volcano Plot"
+    main = "Volcano Plot"
   )
 
-  abline(h = -log10(bonferroni_thres), col = "black", lty = 2)
+  abline(h = -log10(bonferroni_thres), col = "black", lty = 2, xpd = FALSE)
 
   volcano_plot <- recordPlot()
 

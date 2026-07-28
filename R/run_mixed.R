@@ -113,27 +113,59 @@ run_mixed <- function(formula,
                       output_file = NULL) {
 
   # Step 1: Validate inputs
-  if (!inherits(formula, "formula")) stop("'formula' must be a formula object")
-  if (!is.data.frame(pheno))    stop("'pheno' must be a data frame")
-  if (!is.data.frame(omic_features)) stop("'omic_features' must be a data frame")
-  if (!id_col %in% colnames(pheno))    stop("ID column '", id_col, "' not found in 'pheno'")
-  if (!id_col %in% colnames(omic_features)) stop("ID column '", id_col, "' not found in 'omic_features'")
+  if (!inherits(formula, "formula")) 
+    stop("'formula' must be a formula object")
+  
+  if (!is.data.frame(pheno))    
+    stop("'pheno' must be a data frame")
+  
+  if (!is.data.frame(omic_features)) 
+    stop("'omic_features' must be a data frame")
+  
+  if (!id_col %in% colnames(pheno))    
+    stop("ID column '", id_col, "' not found in 'pheno'")
+  
+  if (!id_col %in% colnames(omic_features)) 
+    stop("ID column '", id_col, "' not found in 'omic_features'")
+  
   if (!family %in% c("gaussian", "binomial", "poisson")) {
     stop("'family' must be either 'gaussian', 'binomial', or 'poisson'")
   }
+  
   if (!is.numeric(fdr.thres) || fdr.thres <= 0 || fdr.thres >= 1) {
     stop("'fdr.thres' must be a number between 0 and 1")
   }
 
   formula_check <- paste(deparse(formula), collapse = " ")
 
-  # merge pheno and omic_featuresby shared ID column
+  # merge pheno and omic_features by shared ID column
   data <- merge(pheno, omic_features, by = id_col)
   exposures <- setdiff(colnames(omic_features), id_col)
   if (length(exposures) == 0) stop("'omic_features' must contain at least one exposure column besides the ID")
 
-  w <- if (!is.null(weights)) data[[weights]] else NULL
-
+  # weights vector
+  # validate and resolve weights
+  if (!is.null(weights)) {
+    if (is.character(weights) && length(weights) == 1) {
+      if (!weights %in% colnames(data)) {
+        stop("Weights column '", weights, "' not found in 'pheno'. ")
+      }
+      w <- data[[weights]]
+    } else if (is.numeric(weights)) {
+      if (length(weights) != nrow(data)) {
+        stop("Weights vector length (", length(weights), ") must match ",
+             "the number of matched participants (", nrow(data), ")")
+      }
+      w <- weights
+    } else {
+      stop("'weights' must be either a column name (character string) ",
+           "present in 'pheno', or a numeric vector of the same length ",
+           "as the number of matched participants")
+    }
+  } else {
+    w <- NULL
+  }
+  
   if (nrow(data) == 0) stop("no matching participants found between 'pheno' and 'omic_features'")
   message(nrow(data), " participants matched across pheno and omic_features data frames")
   message(length(exposures), " exposure variables identified in omic_features")

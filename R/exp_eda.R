@@ -149,6 +149,16 @@ exp_eda <- function(omic_features, id_col, rho_thresh = 0.5,
     all_batch_stats <- data.frame()
   } else {
 
+    all_values <- unlist(numeric_df, use.names = FALSE)
+    all_values <- all_values[is.finite(all_values)]
+    use_log10  <- all(all_values > 0)
+
+    if (use_log10) {
+      cat("All values are positive. Forest plots use the log10 scale.\n")
+    } else {
+      cat("Data contains zero or negative values. Forest plots use the linear scale.\n")
+    }
+    
   # batch the samples
     batch_size <- if (length(outlier_sample_ids) <= 100) length(outlier_sample_ids) else 60
 

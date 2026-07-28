@@ -529,4 +529,7 @@ exp_eda <- function(omic_features, id_col, rho_thresh = 0.5,
     correlation_blocks  = kept_block_features,
     correlation_summary = kept_block_summary
   ))
+  
+  par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
+  
 }

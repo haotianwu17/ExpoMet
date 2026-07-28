@@ -14,7 +14,8 @@
 #' \code{Surv(time_to_event, event) ~ omic_features + age}. Variables from \code{pheno}
 #' are referenced directly by column name. The keyword \code{omic_features} is used as
 #' a placeholder for the exposure variables in the \code{omic_features} data frame,
-#' which are automatically looped over. Interactions between omic features and phenotype
+#' which are automatically looped over. Only the first predictor on the right-hand
+#' side is extracted as the coefficient of interest. Interactions between omic features and phenotype
 #' variables can be specified using \code{*} e.g. \code{Surv(time, event) ~ omic_features * covariate}.
 #' When specifying an interaction, the main exposure of interest should always
 #' be listed first. Only the interaction term coefficient is returned in the
@@ -62,7 +63,7 @@
 #'   threshold line indicated by a dashed horizontal line}
 #' }
 #'
-# @importFrom survival coxph Surv cluster  # commented out as it will give error in building the package
+#' @importFrom survival coxph Surv cluster
 #'
 #' @export
 #'
@@ -93,8 +94,6 @@
 #'
 #'
 #'
-
-
 run_cox <- function(formula,
                     pheno,
                     omic_features,
@@ -103,13 +102,6 @@ run_cox <- function(formula,
                     fdr.thres   = 0.05,
                     weights     = NULL,
                     output_file = NULL) {
-  if (!requireNamespace("survival", quietly = TRUE)) {
-    stop(
-      "Package 'survival' is required to use run_cox(). ",
-      "Install it with install.packages('survival').",
-      call. = FALSE
-    )
-  }
 
   # Step 1: Validate the inputs and merge data frames
   if (!inherits(formula, "formula")) {
@@ -208,6 +200,8 @@ run_cox <- function(formula,
         model <- survival::coxph(model_formula, data = data, weights = w, ties = ties)
 
         coef_summary <- summary(model)$coefficients
+        se_col <- if ("robust se" %in% colnames(coef_summary)) "robust se" else "se(coef)"
+        p_col  <- colnames(coef_summary)[grepl("^Pr", colnames(coef_summary))]
 
         if (has_interaction) {
           coef_name <- rownames(coef_summary)[
@@ -215,7 +209,10 @@ run_cox <- function(formula,
           ]
           if (length(coef_name) == 0) stop("no interaction term found for exposure: ", exp)
         } else {
-          coef_name <- exp
+          coef_name <- rownames(coef_summary)[
+            grep(paste0("^", exp), rownames(coef_summary))
+          ]
+          if (length(coef_name) == 0) stop("no coefficient found for exposure: ", exp)
         }
 
         # se(coef) with no clustering, robust se with clustering

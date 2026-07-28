@@ -4,12 +4,13 @@
 \alias{preview}
 \title{Preview of Data}
 \usage{
-preview(omic_features, id_col = "exp_id")
+preview(omic_features, id_col)
 }
 \arguments{
 \item{omic_features}{A dataframe with an id column and exposure columns.}
 
-\item{id_col}{A string specifying the name of the id column.}
+\item{id_col}{A character string specifying the name of the id column
+in \code{omic_features}.}
 }
 \value{
 A printed summary containing:
@@ -21,7 +22,7 @@ and the percentage of columns in the dataset with non-numeric values.}
 \item{Missing data}{the exposure columns and rows that contain missing values (\code{NA}
 or \code{NaN}) and the percentage of missing values per column or row.}
 \item{Zeroes Present}{the exposure columns containing zeroes and the percentage
-of missing values per column.}
+of zeroes per column.}
 \item{Zero variance}{the exposure columns with zero variance across all samples.}
 \item{Skewness}{the exposure columns with skewness that significantly deviates from
 a normal distribution, evaluated using the D'Agostino-Pearson test.}

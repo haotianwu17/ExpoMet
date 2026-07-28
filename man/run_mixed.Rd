@@ -20,7 +20,9 @@ run_mixed(
 in \code{lme4} syntax. Variables from \code{pheno}
 are referenced directly by column name. The keyword \code{omic_features} is used
 as a placeholder for the exposure variables in \code{omic_features} data frame,
-which are automatically looped over. The formula should include at least one random effect term specified
+which are automatically looped over. Only the first predictor on the right-hand
+side is extracted as the coefficient of interest.
+The formula should include at least one random effect term specified
 using \code{lme4} syntax — e.g. \code{(1 | batch)} for a random
 intercept by batch, or \code{(1 + age | batch)} for a random slope.
 Random effects account for clustering or grouping structure in the data
@@ -118,6 +120,7 @@ run_mixed(
 )
 
 }
+
 
 
 }

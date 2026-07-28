@@ -6,39 +6,36 @@
 #' It supports:
 #' \itemize{
 #'   \item Optional grouping of results
-#'   \item Flexible effect size input (t-score OR fold-change)
-#'   \item Optional retention time and ion mode annotation
-#'   \item Multiple annotation tables (e.g. Cdata:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAWElEQVR42mNgGPTAxsZmJsVqQApgmGw1yApwKcQiT7phRBuCzzCSDSHGMKINIeDNmWQlA2IigKJwIssQkHdINgxfmBBtGDEBS3KCxBc7pMQgMYE5c/AXPwAwSX4lV3pTWwAAAABJRU5ErkJggg==18 + HILIC, pos + neg)
+#'   \item Effect size input (t-score)
+#'   \item Optional retention time and ion mode annotation (e.g. pos or neg, C18, HILIC)
 #' }
 #'
-#' @param exposure Character. Name of exposure or analysis (used for output naming).
+#' @param exposure Character. Name of exposure or analysis (used for output file naming).
 #'
 #' @param input_df1 Data.frame containing MWAS results (e.g. C18 platform).
 #'
-#' @param input_df2 Optional second data.frame (e.g. HILIC platform).
+#' @param input_df2 Optional second data.frame (e.g. HILIC platform). Exclude this if you only have one results data.frame
 #'
 #' @param annotation_df_list Data.frame OR list of data.frames containing feature annotations
 #'   (e.g. c18_neg, c18_pos, hilic_neg, hilic_pos).
 #'
-#' @param output_dir Character. Directory where formatted files will be saved.
+#' @param output_dir Character. Local directory where formatted .txt files will be saved.
 #'
-#' @param id_col Character. Feature identifier column name. Default is "feature_id".
+#' @param feature_col Character. Feature identifier column name in the annotation_df file. Default is "feature_id".
 #'
 #' @param mz_col Character. Column name for mass-to-charge ratio. Default is "mz".
 #'
 #' @param rt_col Character or NULL. Column name for retention time.
 #'
-#' @param p_col Character. Column name for p-values. Default is "pvalue".
+#' @param p_col Character. Column name for p-values. Default is "p.value".
 #'
-#' @param score_col Character or NULL. Column name for t-statistic or other effect size.
+#' @param score_col Character. Column name for t-statistic or other effect size.
 #'
-#' @param fc_col Character or NULL. Column name for fold-change.
+#' @param group_col Character or NULL. Optional column used for stratified outputs.
 #'
-#' @param group_col Character or NULL. Column used for stratified outputs.
+#' @param group_values Character vector or NULL. Optional values of group_col to iterate over.
 #'
-#' @param group_values Character vector or NULL. Values of group_col to iterate over.
-#'
-#' @param feature_pattern_col Character or NULL. Column used to infer ionization mode.
+#' @param pos_neg_col Character or NULL. Column used to infer ionization mode.
 #'
 #' @return Invisibly returns TRUE. Writes formatted Mummichog input files to disk.
 #'
@@ -50,15 +47,14 @@ format_mummichog_input <- function(
     input_df2 = NULL,
     annotation_df_list,
     output_dir,
-    id_col = "feature_id",
+    feature_col = "feature_id",
     mz_col = "mz",
     rt_col = NULL,
     p_col = "pvalue",
-    score_col = NULL,
-    fc_col = NULL,
+    score_col = "estimate",
     group_col = NULL,
     group_values = NULL,
-    feature_pattern_col = NULL
+    pos_neg_col = NULL
 ) {
 
   # -----------------------------
@@ -86,13 +82,10 @@ format_mummichog_input <- function(
     stop("annotation_df_list must be a data.frame or list of data.frames")
   }
 
-  if (is.null(score_col) && is.null(fc_col)) {
-    stop("Provide either score_col or fc_col.")
+  if (is.null(score_col)) {
+    stop("Must provide score_col.")
   }
 
-  if (!is.null(score_col) && !is.null(fc_col)) {
-    stop("Only one of score_col or fc_col should be provided.")
-  }
 
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
@@ -108,22 +101,20 @@ format_mummichog_input <- function(
   }
 
   # enforce ID column
-  if (!(id_col %in% colnames(dat_all))) {
-    colnames(dat_all)[1] <- id_col
+  if (!(feature_col %in% colnames(dat_all))) {
+    colnames(dat_all)[1] <- feature_col
   }
 
   # -----------------------------
   # Merge annotations
   # -----------------------------
-  dat_all <- merge(dat_annot, dat_all, by = id_col)
+  dat_all <- merge(dat_annot, dat_all, by = feature_col)
 
   # -----------------------------
   # Required columns
   # -----------------------------
-  required_cols <- c(id_col, mz_col, p_col)
+  required_cols <- c(feature_col, mz_col, p_col, score_col)
 
-  if (!is.null(score_col)) required_cols <- c(required_cols, score_col)
-  if (!is.null(fc_col)) required_cols <- c(required_cols, fc_col)
 
   missing_cols <- setdiff(required_cols, colnames(dat_all))
 
@@ -137,7 +128,7 @@ format_mummichog_input <- function(
   # -----------------------------
   # Optional columns warning
   # -----------------------------
-  optional_cols <- c(rt_col, feature_pattern_col, group_col)
+  optional_cols <- c(rt_col, pos_neg_col, group_col)
   optional_cols <- optional_cols[!is.null(optional_cols)]
 
   missing_optional <- setdiff(optional_cols, colnames(dat_all))
@@ -152,11 +143,11 @@ format_mummichog_input <- function(
   # -----------------------------
   # Ion mode
   # -----------------------------
-  if (!is.null(feature_pattern_col) &&
-      feature_pattern_col %in% colnames(dat_all)) {
+  if (!is.null(pos_neg_col) &&
+      pos_neg_col %in% colnames(dat_all)) {
 
     dat_all$mode <- ifelse(
-      grepl("pos", dat_all[[feature_pattern_col]], ignore.case = TRUE),
+      grepl("pos", dat_all[[pos_neg_col]], ignore.case = TRUE),
       "positive",
       "negative"
     )
@@ -172,7 +163,7 @@ format_mummichog_input <- function(
 
     df <- df[order(df[[p_col]]), , drop = FALSE]
 
-    score_name <- if (!is.null(score_col)) score_col else fc_col
+    score_name <- score_col
 
     out <- data.frame(
       m.z = df[[mz_col]],

@@ -6,7 +6,7 @@
 \usage{
 exp_eda(
   omic_features,
-  id_col = "exp_id",
+  id_col,
   rho_thresh = 0.5,
   min_block_size = 5,
   batch = NULL
@@ -15,7 +15,8 @@ exp_eda(
 \arguments{
 \item{omic_features}{A dataframe with an id column and omic features columns.}
 
-\item{id_col}{A string specifying the name of the id column.}
+\item{id_col}{A character string specifying the name of the id column
+in \code{omic_features}.}
 
 \item{rho_thresh}{A numeric value specifying the minimum Spearman correlation
 threshold for two features to be grouped in the same correlation block. The value
@@ -74,18 +75,22 @@ differences by batch and tests their differences using ANOVA, and identifies cor
 features.
 }
 \examples{
-data(exposome_example)
+set.seed(1)
 
-exp_small <- exposome_example[, c(
-  "exp_id",
-  paste0("C", sprintf("\%04d", 1:20))
-)]
-
-exp_eda(
-  exp_small,
-  id_col = "exp_id",
-  rho_thresh = 0.5,
-  min_block_size = 6
+omic_features <- data.frame(
+  exp_id = 1:20,
+  A = rnorm(20),
+  B = rnorm(20),
+  C = rnorm(20)
 )
+
+batch <- rep(c("Batch1", "Batch2"), each = 10)
+
+exp_eda(omic_features,
+        id_col         = "exp_id",
+        rho_thresh      = 0.5,
+        min_block_size = 6,
+        batch          = batch
+        )
 
 }

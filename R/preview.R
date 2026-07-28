@@ -13,7 +13,8 @@
 #'
 #'
 #' @param omic_features A dataframe with an id column and exposure columns.
-#' @param id_col A string specifying the name of the id column.
+#' @param id_col A character string specifying the name of the id column
+#' in \code{omic_features}.
 
 
 #' @return A printed summary containing:
@@ -25,7 +26,7 @@
 #'  \item{Missing data}{the exposure columns and rows that contain missing values (\code{NA}
 #'     or \code{NaN}) and the percentage of missing values per column or row.}
 #'  \item{Zeroes Present}{the exposure columns containing zeroes and the percentage
-#'  of missing values per column.}
+#'  of zeroes per column.}
 #'  \item{Zero variance}{the exposure columns with zero variance across all samples.}
 #'  \item{Skewness}{the exposure columns with skewness that significantly deviates from
 #'  a normal distribution, evaluated using the D'Agostino-Pearson test.}
@@ -40,7 +41,7 @@
 #'
 #' @export
 
-preview <- function(omic_features, id_col = "exp_id") {
+preview <- function(omic_features, id_col) {
 
   # check before running any computation
   if (!is.data.frame(omic_features)) {
@@ -153,7 +154,7 @@ negative_summary <- negative_summary[order(-negative_summary$negative_pct), ]
 rownames(negative_summary) <- NULL
 
 # Step 5: Identify Zeroes
-zero_pct <- sapply(exposure_df, function(x) mean(x == 0, na.rm = TRUE))
+zero_pct <- sapply(numeric_df, function(x) mean(x == 0, na.rm = TRUE))
 zero_summary <- data.frame(
   exposure = names(zero_pct),
   zero_pct = round(zero_pct * 100, 2),
@@ -167,7 +168,8 @@ rownames(zero_summary) <- NULL
 # Step 6: Identify No Variance
 variances <- sapply(numeric_df, var, na.rm = TRUE)
 variance_summary <- data.frame(
-  exposure = names(variances)[variances == 0])
+  exposure = names(variances)[!is.na(variances) & variances == 0],
+    row.names = NULL)
 
 # Step 7: Skewness Indicator (with FDR correction)
 skew_results <- sapply(numeric_df, d_agostino_skew_test)
@@ -188,9 +190,6 @@ skew_summary <- skew_summary[order(skew_summary$fdr), ]
 rownames(skew_summary) <- NULL
 
 # Step 8: Minimum Inflation
-n_rows <- nrow(numeric_df)
-expected_freq <- 1 / n_rows
-
 min_inflation <- sapply(numeric_df, function(x){
   x <- x[!is.na(x)]
   if (length(x) == 0) return(c(min_value = NA, observed_freq = NA, fold_over_expected = NA))
@@ -198,6 +197,9 @@ min_inflation <- sapply(numeric_df, function(x){
   min_val <- min(x)
 
   if (min_val == 0) return(c(min_value = min_val, observed_freq = NA, fold_over_expected = NA))
+
+  nonNA_n       <- length(x)
+  expected_freq <- 1 / nonNA_n
 
   observed_freq <- mean(x == min_val)
   fold_over_expected <- observed_freq / expected_freq
@@ -227,7 +229,7 @@ if (nrow(duplicate_id_summary) == 0) {
   cat(nrow(duplicate_id_summary), "duplicate ID(s) identified.\n")
   print(head(duplicate_id_summary, 5))
   if (nrow(duplicate_id_summary) > 5) {
-    cat("See `duplicate_ids` in the returned object for all duplicates identified.\n")
+    cat("See `duplicate_id` in the returned object for all results.\n")
   }
   cat("\n")
 }
@@ -239,6 +241,9 @@ if (nrow(non_numeric_summary) == 0) {
   cat(nrow(non_numeric_summary), "non-numeric column(s) detected",
       paste0("(", non_numeric_pct, "% of all exposure columns):\n"))
   print(head(non_numeric_summary, 5))
+  if (nrow(non_numeric_summary) > 5) {
+    cat("See 'non_numeric' in the returned object for all results.\n")
+  }
   cat("\n")
 }
 
@@ -248,6 +253,9 @@ if (n_col == 0 && n_row == 0) {
 } else {
   cat(n_col, "column(s) and", n_row, "row(s) with missing data:\n")
   print(head(missing_summary, 5))
+  if (nrow(missing_summary) > 5) {
+    cat("See 'missing' in the returned object for all results.\n")
+  }
   cat("\n")
 }
 
@@ -257,6 +265,9 @@ if (nrow(negative_summary) == 0) {
 } else {
   cat(nrow(negative_summary), "exposure(s) with negative numbers:\n")
   print(head(negative_summary, 5))
+  if (nrow(negative_summary) > 5) {
+    cat("See 'negative' in the returned object for all results.\n")
+  }
   cat("\n")
 }
 
@@ -266,6 +277,9 @@ if (nrow(zero_summary) == 0) {
 } else {
   cat(nrow(zero_summary), "exposure(s) with zeroes:\n")
   print(head(zero_summary, 5))
+  if (nrow(zero_summary) > 5) {
+    cat("See 'zero' in the returned object for all results.\n")
+  }
   cat("\n")
 }
 
@@ -275,6 +289,9 @@ if (nrow(variance_summary) == 0) {
 } else {
   cat(nrow(variance_summary), "exposure(s) with zero variance:\n")
   print(head(variance_summary, 5))
+  if (nrow(variance_summary) > 5) {
+    cat("See 'variance' in the returned object for all results.\n")
+  }
   cat("\n")
 }
 
@@ -284,6 +301,9 @@ if (nrow(skew_summary) == 0) {
 } else {
   cat(nrow(skew_summary), "exposure(s) with significant skewness (FDR < 0.05):\n")
   print(head(skew_summary, 5))
+  if (nrow(skew_summary) > 5) {
+    cat("See 'skewness' in the returned object for all skewed features.\n")
+  }
   cat("\n")
 }
 
@@ -293,6 +313,9 @@ if (nrow(min_inflation_summary) == 0) {
 } else {
   cat(nrow(min_inflation_summary), "exposure(s) with overrepresented minimum values:\n")
   print(head(min_inflation_summary, 5))
+  if (nrow(min_inflation_summary) > 5) {
+    cat("See 'min_inflation' in the returned object for all results.\n")
+  }
   cat("\n")
 }
 

@@ -15,7 +15,9 @@
 #' in \code{lme4} syntax. Variables from \code{pheno}
 #' are referenced directly by column name. The keyword \code{omic_features} is used
 #' as a placeholder for the exposure variables in \code{omic_features} data frame,
-#' which are automatically looped over. The formula should include at least one random effect term specified
+#' which are automatically looped over. Only the first predictor on the right-hand
+#' side is extracted as the coefficient of interest.
+#' The formula should include at least one random effect term specified
 #' using \code{lme4} syntax — e.g. \code{(1 | batch)} for a random
 #' intercept by batch, or \code{(1 + age | batch)} for a random slope.
 #' Random effects account for clustering or grouping structure in the data
@@ -72,7 +74,7 @@
 #'   threshold line indicated by a dashed horizontal line}
 #' }
 #'
-# @importFrom lme4 lmer glmer # commented out as it will give error in building the package
+#' @importFrom lme4 lmer glmer
 #'
 #' @export
 #'
@@ -100,7 +102,7 @@
 #' }
 #'
 #'
-
+#'
 run_mixed <- function(formula,
                       pheno,
                       omic_features,
@@ -109,14 +111,6 @@ run_mixed <- function(formula,
                       fdr.thres   = 0.05,
                       weights     = NULL,
                       output_file = NULL) {
-  if (!requireNamespace("lme4", quietly = TRUE)) {
-    stop(
-      "Package 'lme4' is required to use run_mixed(). ",
-      "Install it with install.packages('lme4').",
-      call. = FALSE
-    )
-  }
-
 
   # Step 1: Validate inputs
   if (!inherits(formula, "formula")) stop("'formula' must be a formula object")
@@ -170,6 +164,10 @@ run_mixed <- function(formula,
         coef_summary <- summary(model)$coefficients
 
         get_pvalue <- function(coef_name) {
+          if (!coef_name %in% rownames(coef_summary)) {
+            warning("coefficient '", coef_name, "' not found in model summary. Returning NA")
+            return(NA_real_)
+          }
           if (family == "gaussian") {
             t_val <- coef_summary[coef_name, "t value"]
             2 * pnorm(-abs(t_val))
@@ -180,7 +178,12 @@ run_mixed <- function(formula,
 
         if (omic_on_left) {
           first_predictor <- trimws(strsplit(deparse(formula[[3]]), "[+*]")[[1]][1])
-          coef_name <- first_predictor
+            coef_name <- rownames(coef_summary)[
+              grep(paste0("^", first_predictor), rownames(coef_summary))
+            ]
+            if (length(coef_name) == 0) {
+              stop("no coefficient found for predictor: ", first_predictor)
+            }
 
           result_list <- lapply(coef_name, function(coef_name) {
             data.frame(
@@ -202,7 +205,12 @@ run_mixed <- function(formula,
             ]
             if (length(coef_name) == 0) stop("no interaction term found for exposure: ", exp)
           } else {
-            coef_name <- exp
+            coef_name <- rownames(coef_summary)[
+              grep(paste0("^", exp), rownames(coef_summary))
+            ]
+            if (length(coef_name) == 0) {
+              stop("no coefficient found for exposure: ", exp)
+            }
           }
 
           result_list <- lapply(coef_name, function(coef_name) {

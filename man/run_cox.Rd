@@ -21,7 +21,8 @@ survival outcome on the left-hand side using \code{Surv()}, e.g.
 \code{Surv(time_to_event, event) ~ omic_features + age}. Variables from \code{pheno}
 are referenced directly by column name. The keyword \code{omic_features} is used as
 a placeholder for the exposure variables in the \code{omic_features} data frame,
-which are automatically looped over. Interactions between omic features and phenotype
+which are automatically looped over. Only the first predictor on the right-hand
+side is extracted as the coefficient of interest. Interactions between omic features and phenotype
 variables can be specified using \code{*} e.g. \code{Surv(time, event) ~ omic_features * covariate}.
 When specifying an interaction, the main exposure of interest should always
 be listed first. Only the interaction term coefficient is returned in the

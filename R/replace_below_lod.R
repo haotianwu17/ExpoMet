@@ -409,7 +409,7 @@ replace_below_lod <- function(
     )
   }
 
-  message("Replacement complete ✔")
+  message("Replacement complete")
 
   return(df)
 }

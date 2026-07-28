@@ -208,7 +208,12 @@ run_regression <- function(formula,
 
       if (omic_features_on_left) {
         first_predictor <- trimws(strsplit(deparse(formula[[3]]), "[+*]")[[1]][1])
-        coef_name       <- first_predictor
+        coef_name       <- rownames(coef_summary)[
+          grep(paste0("^", first_predictor), rownames(coef_summary))
+        ]
+        if (length(coef_name) == 0) {
+          stop("no coefficient found for predictor: ", first_predictor)
+        }
 
         result_list <- lapply(coef_name, function(coef_name) {
           data.frame(
@@ -232,7 +237,12 @@ run_regression <- function(formula,
             stop("no interaction term found for exposure: ", exp)
           }
         } else {
-          coef_name <- exp
+          coef_name <- rownames(coef_summary)[
+            grep(paste0("^", exp), rownames(coef_summary))
+          ]
+          if (length(coef_name) == 0) {
+            stop("no coefficient found for exposure: ", exp)
+          }
         }
 
         result_list <- lapply(coef_name, function(coef_name) {

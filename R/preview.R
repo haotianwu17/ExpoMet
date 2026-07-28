@@ -47,12 +47,15 @@ preview <- function(omic_features, id_col) {
   if (!is.data.frame(omic_features)) {
     stop("'omic_features' must be a data frame")
   }
-  if (!id_col %in% names(omic_features)) {
-    stop("ID column '", id_col, "' not found in 'omic_features'. ")
-  }
+  
   if (nrow(omic_features) == 0) {
     stop("'omic_features' contains no rows")
   }
+  
+  if (!id_col %in% names(omic_features)) {
+    stop("ID column '", id_col, "' not found in 'omic_features'. ")
+  }
+
   exposure_cols <- setdiff(names(omic_features), id_col)
   if (length(exposure_cols) == 0) {
     stop("No exposure columns found in 'omic_features' after removing the ID column '",

@@ -80,11 +80,26 @@
 
 exp_eda <- function(omic_features, id_col, rho_thresh = 0.5,
                     min_block_size = 5, batch = NULL) {
-
-  exposure_cols <- setdiff(names(omic_features), id_col)
-  numeric_df <- omic_features[exposure_cols]
-  numeric_df <- numeric_df[sapply(numeric_df, is.numeric)]
-
+  
+  if (!is.data.frame(omic_features)) {
+    stop("'omic_features' must be a data frame")
+  }
+  
+  if (nrow(omic_features) == 0) {
+    stop("'omic_features' contains no rows")
+  }
+  
+  if (!id_col %in% names(omic_features)) {
+    stop("ID column '", id_col, "' not found in 'omic_features'. ")
+  }
+  
+  if (!is.numeric(rho_thresh) || rho_thresh <= 0 || rho_thresh >= 1) {
+    stop("'rho_thresh' must be a number between 0 and 1")
+  }
+  if (!is.numeric(min_block_size) || min_block_size < 2) {
+    stop("'min_block_size' must be an integer of at least 2")
+  }
+  
   if (!is.null(batch)) {
     if (!is.vector(batch) && !is.factor(batch)) {
       stop("'batch' must be a vector of batch assignments, ",
@@ -103,13 +118,18 @@ exp_eda <- function(omic_features, id_col, rho_thresh = 0.5,
     }
   }
 
-  if (!is.numeric(rho_thresh) || rho_thresh <= 0 || rho_thresh >= 1) {
-    stop("'rho_thresh' must be a number between 0 and 1")
+  exposure_cols <- setdiff(names(omic_features), id_col)
+  numeric_df <- omic_features[exposure_cols]
+  numeric_df <- numeric_df[sapply(numeric_df, is.numeric)]
+  
+  if (length(exposure_cols) == 0) {
+    stop("No exposure columns found after removing ID column '", id_col, "'")
   }
-  if (!is.numeric(min_block_size) || min_block_size < 2) {
-    stop("'min_block_size' must be an integer of at least 2")
+  
+  if (ncol(numeric_df) == 0) {
+    stop("No numeric exposure columns found in 'omic_features' after ",
+         "removing ID column '", id_col, "'")
   }
-
 # Step 1: Forest Plots - Relative Intensity Summary Per Experiment
 
   # filtered to only samples with at least one outlier

@@ -42,6 +42,8 @@
 #' Defaults to 0.05.
 #' @param weights An optional vector or character string specifying the
 #' regression weights. Defaults to NULL (no weights).
+#' @param progress_bar An optional logical indicating whether to display a progress
+#' bar during model fitting. Defaults to \code{TRUE}.
 #' @param output_file An optional character string specifying a file path to
 #' save the results table as a CSV file. Defaults to NULL (no file saved).
 #'
@@ -92,6 +94,7 @@ run_regression <- function(formula,
                     family      = "gaussian",
                     fdr.thres   = 0.05,
                     weights     = NULL,
+                    progress_bar = TRUE,
                     output_file = NULL) {
 
   # Step 1: Validate the inputs and merge data frames
@@ -185,7 +188,10 @@ run_regression <- function(formula,
 
   errors   <- c()    # store errors
   results  <- vector("list", length(exposures))
-  progress <- txtProgressBar(min = 0, max = length(exposures), style = 3)
+  
+  if (progress_bar) {
+    show_progress <- txtProgressBar(min = 0, max = length(exposures), style = 3)
+  }
 
   for (i in seq_along(exposures)) {
     exp <- exposures[i]
@@ -265,10 +271,14 @@ run_regression <- function(formula,
       NULL    # return NULL for this exposure so loop continues
     })
 
-    setTxtProgressBar(progress, i)
+    if (progress_bar) {
+      setTxtProgressBar(show_progress, i)
+    }
   }
-
-  close(progress)
+   
+    if (progress_bar) {
+      close(show_progress)
+    }
 
   # report all errors after the loop completes
   if (length(errors) > 0) {

@@ -12,6 +12,7 @@ run_cox(
   ties = "efron",
   fdr.thres = 0.05,
   weights = NULL,
+  progress_bar = TRUE,
   output_file = NULL
 )
 }
@@ -51,6 +52,9 @@ Defaults to 0.05.}
 
 \item{weights}{An optional vector or character string specifying the
 regression weights. Defaults to NULL (no weights).}
+
+\item{progress_bar}{An optional logical indicating whether to display a progress
+bar during model fitting. Defaults to \code{TRUE}.}
 
 \item{output_file}{An optional character string specifying a file path to
 save the results table as a CSV file. Defaults to NULL (no file saved).}
